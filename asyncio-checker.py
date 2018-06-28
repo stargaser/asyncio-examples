@@ -7,18 +7,18 @@ import time
 
 async def get_statuses(websites):
     statuses = {}
-    tasks = [get_website_status(website) for website in websites]
-    for status in await asyncio.gather(*tasks):
-        if not statuses.get(status):
-            statuses[status] = 0
-        statuses[status] += 1
+    async with aiohttp.ClientSession() as session:
+        tasks = [get_website_status(session, website) for website in websites]
+        for status in await asyncio.gather(*tasks):
+            if not statuses.get(status):
+                statuses[status] = 0
+            statuses[status] += 1
     print(json.dumps(statuses))
 
 
-async def get_website_status(url):
-    response = await aiohttp.get(url)
-    status = response.status
-    response.close()
+async def get_website_status(session, url):
+    async with session.get(url) as response:
+        status = response.status
     return status
 
 
